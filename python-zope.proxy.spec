@@ -1,8 +1,9 @@
+%define module	zope.proxy
 Summary:	Mostly-transparent wrappers around another object
 Summary(pl.UTF-8):	Prawie przezroczyste obudowywanie innych obiektów
-Name:		Zope-Proxy
+Name:		python-%{module}
 Version:	3.4.2
-Release:	2
+Release:	1
 License:	ZPL 2.1
 Group:		Libraries/Python
 Source0:	http://pypi.python.org/packages/source/z/zope.proxy/zope.proxy-%{version}.zip
@@ -15,7 +16,8 @@ BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.710
 BuildRequires:	unzip
 %pyrequires_eq	python-modules
-Requires:	Zope-Interface
+Requires:	python-zope.interface
+Obsoletes:	Zope-Proxy
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
