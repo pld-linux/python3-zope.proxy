@@ -1,23 +1,48 @@
+#
+# Conditional build:
+%bcond_without	doc	# Sphinx documentation
+%bcond_with	tests	# unit tests (installed package required)
+%bcond_without	python2 # CPython 2.x module
+%bcond_without	python3 # CPython 3.x module
+
 %define module	zope.proxy
 Summary:	Mostly-transparent wrappers around another object
 Summary(pl.UTF-8):	Prawie przezroczyste obudowywanie innych obiektów
 Name:		python-%{module}
-Version:	3.4.2
-Release:	3
-License:	ZPL 2.1
+Version:	4.5.0
+Release:	1
+License:	ZPL v2.1
 Group:		Libraries/Python
-Source0:	http://pypi.python.org/packages/source/z/zope.proxy/zope.proxy-%{version}.zip
-# Source0-md5:	ad51f25d4d86be7cfebb70bd77421f92
-URL:		http://www.zope.org/
-BuildRequires:	python >= 1:2.5
-BuildRequires:	python-devel >= 1:2.5
+Source0:	https://files.pythonhosted.org/packages/source/z/zope.proxy/zope.proxy-%{version}.tar.gz
+# Source0-md5:	f18df4454bd57e7352be922f7a43dffb
+URL:		https://www.zope.dev/
+%if %{with python2}
+BuildRequires:	python >= 1:2.7
+BuildRequires:	python-devel >= 1:2.7
 BuildRequires:	python-setuptools
+%if %{with tests}
+BuildRequires:	python-zope.interface
+BuildRequires:	python-zope.testrunner
+%endif
+%endif
+%if %{with python3}
+BuildRequires:	python3 >= 1:3.5
+BuildRequires:	python3-devel >= 1:3.5
+BuildRequires:	python3-setuptools
+%if %{with tests}
+BuildRequires:	python3-zope.interface
+BuildRequires:	python3-zope.testrunner
+%endif
+%endif
 BuildRequires:	rpm-pythonprov
-BuildRequires:	rpmbuild(macros) >= 1.710
-BuildRequires:	unzip
-%pyrequires_eq	python-modules
-Requires:	python-zope.interface
-Obsoletes:	Zope-Proxy
+BuildRequires:	rpmbuild(macros) >= 1.714
+%if %{with doc}
+BuildRequires:	python3-repoze.sphinx.autointerface
+BuildRequires:	sphinx-pdg-3
+%endif
+Requires:	python-modules >= 1:2.7
+Obsoletes:	Zope-Proxy < 3.5.0
+BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -33,32 +58,117 @@ obudowanie innego obiektu, wkraczające w zwykłe zachowanie
 obudowywanego obiektu tylko w razie potrzeby, aby zastosować politykę
 (np. kontrolę dostępu, pośredniczenie itp.), za którą odpowiada proxy.
 
+%package -n python3-%{module}
+Summary:	Mostly-transparent wrappers around another object
+Summary(pl.UTF-8):	Prawie przezroczyste obudowywanie innych obiektów
+Group:		Libraries/Python
+Requires:	python3-modules >= 1:3.5
+
+%description -n python3-%{module}
+Proxies are special objects which serve as mostly-transparent wrappers
+around another object, intervening in the apparent behavior of the
+wrapped object only when necessary to apply the policy (e.g., access
+checking, location brokering, etc.) for which the proxy is
+responsible.
+
+%description -n python3-%{module} -l pl.UTF-8
+Proxy to specjalne obiekty służące jako prawie przezroczyste
+obudowanie innego obiektu, wkraczające w zwykłe zachowanie
+obudowywanego obiektu tylko w razie potrzeby, aby zastosować politykę
+(np. kontrolę dostępu, pośredniczenie itp.), za którą odpowiada proxy.
+
+%package apidocs
+Summary:	API documentation for Python zope.proxy module
+Summary(pl.UTF-8):	Dokumentacja API modułu Pythona zope.proxy
+Group:		Documentation
+
+%description apidocs
+API documentation for Python zope.proxy module.
+
+%description apidocs -l pl.UTF-8
+Dokumentacja API modułu Pythona zope.proxy.
+
 %prep
-%setup -q -n zope.proxy-%{version}
+%setup -q -n %{module}-%{version}
 
 %build
+%if %{with python2}
 %py_build
+
+%if %{with tests}
+PYTHONPATH=$(pwd)/src \
+zope-testrunner-2 --test-path=src -v
+%endif
+%endif
+
+%if %{with python3}
+%py3_build
+
+%if %{with tests}
+PYTHONPATH=$(pwd)/src \
+zope-testrunner-3 --test-path=src -v
+%endif
+%endif
+
+%if %{with doc}
+PYTHONPATH=$(pwd)/src \
+%{__make} -C docs html \
+	SPHINXBUILD=sphinx-build-3
+%endif
 
 %install
 rm -rf $RPM_BUILD_ROOT
 
+%if %{with python2}
 %py_install
 
 %py_postclean
-rm $RPM_BUILD_ROOT%{py_sitedir}/zope/proxy/*.[ch]
-rm -r $RPM_BUILD_ROOT%{py_sitedir}/zope/proxy/tests
+%{__rm} $RPM_BUILD_ROOT%{py_sitedir}/zope/proxy/*.[ch]
+%{__rm} -r $RPM_BUILD_ROOT%{py_sitedir}/zope/proxy/tests
+# or package to -devel?
+%{__rm} $RPM_BUILD_ROOT%{py_incdir}/zope.proxy/proxy.h
+%endif
+
+%if %{with python3}
+%py3_install
+
+%{__rm} $RPM_BUILD_ROOT%{py3_sitedir}/zope/proxy/*.[ch]
+%{__rm} -r $RPM_BUILD_ROOT%{py3_sitedir}/zope/proxy/tests
+# or package to python3-%{module}-devel?
+%{__rm} $RPM_BUILD_ROOT%{py3_incdir}/zope.proxy/proxy.h
+%endif
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%if %{with python2}
 %files
 %defattr(644,root,root,755)
+%doc CHANGES.rst COPYRIGHT.txt LICENSE.txt README.rst
 %dir %{py_sitedir}/zope/proxy
-%{py_sitedir}/zope/proxy/*.cfg
 %{py_sitedir}/zope/proxy/*.py[co]
 %attr(755,root,root) %{py_sitedir}/zope/proxy/_zope_proxy_proxy.so
 %{py_sitedir}/zope.proxy-*.egg-info
 %{py_sitedir}/zope.proxy-*-nspkg.pth
+%endif
 
 # -devel?
 #%{py_incdir}/zope.proxy
+
+%if %{with python3}
+%files -n python3-%{module}
+%defattr(644,root,root,755)
+%doc CHANGES.rst COPYRIGHT.txt LICENSE.txt README.rst
+%dir %{py3_sitedir}/zope/proxy
+%{py3_sitedir}/zope/proxy/*.py
+%{py3_sitedir}/zope/proxy/__pycache__
+%attr(755,root,root) %{py3_sitedir}/zope/proxy/_zope_proxy_proxy.cpython-*.so
+%{py3_sitedir}/zope.proxy-*.egg-info
+%{py3_sitedir}/zope.proxy-*-nspkg.pth
+%endif
+
+%if %{with doc}
+%files apidocs
+%defattr(644,root,root,755)
+%doc docs/_build/html/{_modules,_static,*.html,*.js}
+%endif
