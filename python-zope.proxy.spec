@@ -10,7 +10,7 @@ Summary:	Mostly-transparent wrappers around another object
 Summary(pl.UTF-8):	Prawie przezroczyste obudowywanie innych obiektów
 Name:		python-%{module}
 Version:	4.5.0
-Release:	1
+Release:	2
 License:	ZPL v2.1
 Group:		Libraries/Python
 Source0:	https://files.pythonhosted.org/packages/source/z/zope.proxy/zope.proxy-%{version}.tar.gz
@@ -42,7 +42,6 @@ BuildRequires:	sphinx-pdg-3
 %endif
 Requires:	python-modules >= 1:2.7
 Obsoletes:	Zope-Proxy < 3.5.0
-BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
