@@ -11,7 +11,7 @@ Summary(pl.UTF-8):	Prawie przezroczyste obudowywanie innych obiektów
 Name:		python-%{module}
 # keep 4.x here for python2 support
 Version:	4.6.1
-Release:	2
+Release:	3
 License:	ZPL v2.1
 Group:		Libraries/Python
 Source0:	https://files.pythonhosted.org/packages/source/z/zope.proxy/zope.proxy-%{version}.tar.gz
